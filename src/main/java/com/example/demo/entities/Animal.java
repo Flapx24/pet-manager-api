@@ -58,6 +58,10 @@ public abstract class Animal {
     
     @OneToMany(mappedBy = "animal", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Vaccine> vaccines = new HashSet<>();
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     protected Animal() {
     }
@@ -183,5 +187,13 @@ public abstract class Animal {
         return birthDate != null 
             ? LocalDate.now().getYear() - birthDate.getYear() 
             : 0;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }
