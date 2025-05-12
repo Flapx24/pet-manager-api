@@ -1,0 +1,17 @@
+# Example configuration for BikeTrack
+spring.application.name=BikeTrack
+server.port=8080
+
+# Database Configuration
+spring.datasource.url=your_database_url
+spring.datasource.username=your_database_username
+spring.datasource.password=your_database_password
+spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+
+# JWT Configuration
+jwt.secret=your_jwt_secret_key
+
+# Short: 3 hours (for normal sessions)
+# jwt.expiration=14400000
