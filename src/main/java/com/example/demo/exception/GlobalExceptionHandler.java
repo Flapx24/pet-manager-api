@@ -39,6 +39,7 @@ public class GlobalExceptionHandler {
         Map<String, Object> response = new HashMap<>();
         response.put("success", false);
         response.put("message", "Validation error");
+        response.put("errors", errors);
         
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
