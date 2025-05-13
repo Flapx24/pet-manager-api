@@ -22,26 +22,26 @@ public class AnimalDTO {
     private String color;
     private String gender;
     private AnimalType animalType;
-    
+
     // Additional fields for FULL level
     private String notes;
     private String diet;
     private boolean neutered;
     private LocalDate lastDeworming;
     private UserDTO owner;
-    
+
     // Specific fields by animal type
     private Map<String, Object> specificFields;
-    
+
     // Empty constructor
     public AnimalDTO() {
         this.specificFields = new HashMap<>();
     }
-    
+
     /**
      * Creates a DTO from an Animal entity with the specified detail level
      * 
-     * @param animal Animal entity
+     * @param animal      Animal entity
      * @param detailLevel Detail level (BASIC or FULL)
      * @return DTO with information according to the detail level
      */
@@ -49,9 +49,9 @@ public class AnimalDTO {
         if (animal == null) {
             return null;
         }
-        
+
         AnimalDTO dto = new AnimalDTO();
-        
+
         // Basic fields always included
         dto.id = animal.getId();
         dto.name = animal.getName();
@@ -60,20 +60,37 @@ public class AnimalDTO {
         dto.weightKg = animal.getWeightKg();
         dto.color = animal.getColor();
         dto.gender = animal.getGender();
-        dto.animalType = animal.getAnimalType();
-        
+
+        // Determine the type of animal based on the class instance
+        if (animal instanceof Dog) {
+            dto.animalType = AnimalType.DOG;
+        } else if (animal instanceof Cat) {
+            dto.animalType = AnimalType.CAT;
+        } else if (animal instanceof Bird) {
+            dto.animalType = AnimalType.BIRD;
+        } else if (animal instanceof Reptile) {
+            dto.animalType = AnimalType.REPTILE;
+        } else if (animal instanceof Fish) {
+            dto.animalType = AnimalType.FISH;
+        } else if (animal instanceof Rodent) {
+            dto.animalType = AnimalType.RODENT;
+        } else {
+            dto.animalType = AnimalType.OTHER;
+        }
+
         // Additional fields for FULL level
         if (detailLevel == DetailLevel.FULL) {
             dto.notes = animal.getNotes();
             dto.diet = animal.getDiet();
             dto.neutered = animal.isNeutered();
             dto.lastDeworming = animal.getLastDeworming();
-            
+
             if (animal.getUser() != null) {
                 dto.owner = UserDTO.fromEntity(animal.getUser());
-            }
-              // Specific fields based on animal type
-            switch (animal.getAnimalType()) {
+            } 
+            
+            // Specific fields based on animal type
+            switch (dto.animalType) {
                 case DOG -> {
                     Dog dog = (Dog) animal;
                     dto.specificFields.put("breed", dog.getBreed());
@@ -81,21 +98,21 @@ public class AnimalDTO {
                     dto.specificFields.put("coatType", dog.getCoatType());
                     dto.specificFields.put("pedigree", dog.isPedigree());
                 }
-                
+
                 case CAT -> {
                     Cat cat = (Cat) animal;
                     dto.specificFields.put("breed", cat.getBreed());
                     dto.specificFields.put("coatType", cat.getCoatType());
                     dto.specificFields.put("indoorOnly", cat.isIndoorOnly());
                 }
-                
+
                 case BIRD -> {
                     Bird bird = (Bird) animal;
                     dto.specificFields.put("species", bird.getSpecies());
                     dto.specificFields.put("clippedWings", bird.isClippedWings());
                     dto.specificFields.put("talkingAbility", bird.isTalkingAbility());
                 }
-                
+
                 case REPTILE -> {
                     Reptile reptile = (Reptile) animal;
                     dto.specificFields.put("species", reptile.getSpecies());
@@ -103,7 +120,7 @@ public class AnimalDTO {
                     dto.specificFields.put("temperatureRequirements", reptile.getTemperatureRequirements());
                     dto.specificFields.put("venomous", reptile.isVenomous());
                 }
-                
+
                 case FISH -> {
                     Fish fish = (Fish) animal;
                     dto.specificFields.put("species", fish.getSpecies());
@@ -112,7 +129,7 @@ public class AnimalDTO {
                     dto.specificFields.put("phLevel", fish.getPhLevel());
                     dto.specificFields.put("socialBehavior", fish.getSocialBehavior());
                 }
-                
+
                 case RODENT -> {
                     Rodent rodent = (Rodent) animal;
                     dto.specificFields.put("species", rodent.getSpecies());
@@ -120,11 +137,12 @@ public class AnimalDTO {
                     dto.specificFields.put("lifespanYears", rodent.getLifespanYears());
                     dto.specificFields.put("teethCondition", rodent.getTeethCondition());
                 }
-                
-                default -> { /* No hacer nada para otros tipos */ }
+
+                default -> {
+                    /* No hacer nada para otros tipos */ }
             }
         }
-        
+
         return dto;
     }
 
