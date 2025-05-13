@@ -72,57 +72,62 @@ public class AnimalDTO {
             if (animal.getUser() != null) {
                 dto.owner = UserDTO.fromEntity(animal.getUser());
             }
-            
-            // Specific fields based on animal type
+              // Specific fields based on animal type
             switch (animal.getAnimalType()) {
-                case DOG:
+                case DOG -> {
                     Dog dog = (Dog) animal;
                     dto.specificFields.put("breed", dog.getBreed());
                     dto.specificFields.put("size", dog.getSize());
                     dto.specificFields.put("coatType", dog.getCoatType());
                     dto.specificFields.put("pedigree", dog.isPedigree());
-                    break;
-                    
-                case CAT:
+                }
+                
+                case CAT -> {
                     Cat cat = (Cat) animal;
                     dto.specificFields.put("breed", cat.getBreed());
                     dto.specificFields.put("coatType", cat.getCoatType());
                     dto.specificFields.put("indoorOnly", cat.isIndoorOnly());
-                    break;
-                    
-                case BIRD:
+                }
+                
+                case BIRD -> {
                     Bird bird = (Bird) animal;
                     dto.specificFields.put("species", bird.getSpecies());
                     dto.specificFields.put("clippedWings", bird.isClippedWings());
                     dto.specificFields.put("talkingAbility", bird.isTalkingAbility());
-                    break;
-                    
-                case REPTILE:
+                }
+                
+                case REPTILE -> {
                     Reptile reptile = (Reptile) animal;
                     dto.specificFields.put("species", reptile.getSpecies());
                     dto.specificFields.put("habitatType", reptile.getHabitatType());
                     dto.specificFields.put("temperatureRequirements", reptile.getTemperatureRequirements());
                     dto.specificFields.put("venomous", reptile.isVenomous());
-                    break;
-                    
-                case FISH:
+                }
+                
+                case FISH -> {
                     Fish fish = (Fish) animal;
                     dto.specificFields.put("species", fish.getSpecies());
                     dto.specificFields.put("waterType", fish.getWaterType());
                     dto.specificFields.put("waterTemperature", fish.getWaterTemperature());
                     dto.specificFields.put("phLevel", fish.getPhLevel());
                     dto.specificFields.put("socialBehavior", fish.getSocialBehavior());
-                    break;
-                    
-                default:
-                    break;
+                }
+                
+                case RODENT -> {
+                    Rodent rodent = (Rodent) animal;
+                    dto.specificFields.put("species", rodent.getSpecies());
+                    dto.specificFields.put("cageTrained", rodent.isCageTrained());
+                    dto.specificFields.put("lifespanYears", rodent.getLifespanYears());
+                    dto.specificFields.put("teethCondition", rodent.getTeethCondition());
+                }
+                
+                default -> { /* No hacer nada para otros tipos */ }
             }
         }
         
         return dto;
     }
 
-    // Getters and Setters
     public Long getId() {
         return id;
     }
