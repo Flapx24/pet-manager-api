@@ -1,5 +1,4 @@
-# Example configuration for BikeTrack
-spring.application.name=BikeTrack
+spring.application.name=PetManagerApi
 server.port=8080
 
 # Database Configuration
