@@ -6,9 +6,6 @@ import jakarta.persistence.Entity;
 
 import java.time.LocalDate;
 
-/**
- * Entity representing a dog.
- */
 @Entity
 @DiscriminatorValue("DOG")
 public class Dog extends Animal {
