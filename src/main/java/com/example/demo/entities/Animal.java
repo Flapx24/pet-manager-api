@@ -29,36 +29,38 @@ public abstract class Animal {
     @PastOrPresent(message = "Birth date cannot be in the future")
     @Column(name = "birth_date")
     private LocalDate birthDate;
-    
+
     @Column(name = "registration_date")
     private LocalDate registrationDate;
-    
+
     @Positive(message = "Weight must be a positive value")
     @Column(name = "weight_kg")
     private Double weightKg;
-    
+
     private String color;
-    
+
     @Column(length = 1000)
     private String notes;
-    
+
     private String diet;
-    
+
     @Enumerated(EnumType.STRING)
     @Column(name = "animal_type", insertable = false, updatable = false)
     private AnimalType animalType;
-    
+
     @NotNull(message = "Gender is required")
     private String gender;
-    
+
     private boolean neutered;
-    
+
     @Column(name = "last_deworming")
     private LocalDate lastDeworming;
-    
     @OneToMany(mappedBy = "animal", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Vaccine> vaccines = new HashSet<>();
-    
+
+    @OneToMany(mappedBy = "animal", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<HealthIssue> healthIssues = new HashSet<>();
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
@@ -66,8 +68,8 @@ public abstract class Animal {
     protected Animal() {
     }
 
-    protected Animal(String name, LocalDate birthDate, Double weightKg, String color, 
-                  String gender, boolean neutered) {
+    protected Animal(String name, LocalDate birthDate, Double weightKg, String color,
+            String gender, boolean neutered) {
         this.name = name;
         this.birthDate = birthDate;
         this.registrationDate = LocalDate.now();
@@ -152,7 +154,7 @@ public abstract class Animal {
     public void setNeutered(boolean neutered) {
         this.neutered = neutered;
     }
-    
+
     public String getDiet() {
         return diet;
     }
@@ -160,7 +162,7 @@ public abstract class Animal {
     public void setDiet(String diet) {
         this.diet = diet;
     }
-    
+
     public LocalDate getLastDeworming() {
         return lastDeworming;
     }
@@ -168,25 +170,25 @@ public abstract class Animal {
     public void setLastDeworming(LocalDate lastDeworming) {
         this.lastDeworming = lastDeworming;
     }
-    
+
     public Set<Vaccine> getVaccines() {
         return vaccines;
     }
-    
+
     public void addVaccine(Vaccine vaccine) {
         vaccines.add(vaccine);
         vaccine.setAnimal(this);
     }
-    
+
     public void removeVaccine(Vaccine vaccine) {
         vaccines.remove(vaccine);
         vaccine.setAnimal(null);
     }
-    
+
     public int getAgeYears() {
-        return birthDate != null 
-            ? LocalDate.now().getYear() - birthDate.getYear() 
-            : 0;
+        return birthDate != null
+                ? LocalDate.now().getYear() - birthDate.getYear()
+                : 0;
     }
 
     public User getUser() {
@@ -195,5 +197,19 @@ public abstract class Animal {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public Set<HealthIssue> getHealthIssues() {
+        return healthIssues;
+    }
+
+    public void addHealthIssue(HealthIssue healthIssue) {
+        healthIssues.add(healthIssue);
+        healthIssue.setAnimal(this);
+    }
+
+    public void removeHealthIssue(HealthIssue healthIssue) {
+        healthIssues.remove(healthIssue);
+        healthIssue.setAnimal(null);
     }
 }

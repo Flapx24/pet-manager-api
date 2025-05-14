@@ -2,7 +2,9 @@ package com.example.demo.dto;
 
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.example.demo.entities.*;
 import com.example.demo.enums.AnimalType;
@@ -22,18 +24,15 @@ public class AnimalDTO {
     private String color;
     private String gender;
     private AnimalType animalType;
-
-    // Additional fields for FULL level
     private String notes;
     private String diet;
     private boolean neutered;
     private LocalDate lastDeworming;
     private UserDTO owner;
+    private List<HealthIssueDTO> healthIssues;
 
-    // Specific fields by animal type
     private Map<String, Object> specificFields;
 
-    // Empty constructor
     public AnimalDTO() {
         this.specificFields = new HashMap<>();
     }
@@ -84,11 +83,17 @@ public class AnimalDTO {
             dto.diet = animal.getDiet();
             dto.neutered = animal.isNeutered();
             dto.lastDeworming = animal.getLastDeworming();
-
             if (animal.getUser() != null) {
                 dto.owner = UserDTO.fromEntity(animal.getUser());
-            } 
-            
+            }
+
+            // Include health issues
+            if (animal.getHealthIssues() != null && !animal.getHealthIssues().isEmpty()) {
+                dto.healthIssues = animal.getHealthIssues().stream()
+                        .map(HealthIssueDTO::fromEntity)
+                        .collect(Collectors.toList());
+            }
+
             // Specific fields based on animal type
             switch (dto.animalType) {
                 case DOG -> {
@@ -139,7 +144,8 @@ public class AnimalDTO {
                 }
 
                 default -> {
-                    /* No hacer nada para otros tipos */ }
+
+                }
             }
         }
 
@@ -256,5 +262,13 @@ public class AnimalDTO {
 
     public void setSpecificFields(Map<String, Object> specificFields) {
         this.specificFields = specificFields;
+    }
+
+    public List<HealthIssueDTO> getHealthIssues() {
+        return healthIssues;
+    }
+
+    public void setHealthIssues(List<HealthIssueDTO> healthIssues) {
+        this.healthIssues = healthIssues;
     }
 }
