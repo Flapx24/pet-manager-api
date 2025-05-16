@@ -1,9 +1,14 @@
 package com.example.demo.controllers;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -36,22 +41,61 @@ public class AnimalController {
     }
 
     /**
-     * Get all animals for the authenticated user
+     * Get all animals for the authenticated user with optional filtering,
+     * pagination and sorting
      */
     @GetMapping
     public ResponseEntity<Map<String, Object>> getAllAnimals(
-            @RequestParam(defaultValue = "BASIC") String detailLevel) {
+            @RequestParam(defaultValue = "BASIC") String detailLevel,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String animalType,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "name") String sortBy,
+            @RequestParam(defaultValue = "ASC") String direction,
+            @RequestParam(defaultValue = "false") boolean paginated) {
 
         Long userId = SecurityUtils.getCurrentUserId();
         DetailLevel level = DetailLevel.valueOf(detailLevel.toUpperCase());
-        List<AnimalDTO> animals = animalService.getAllAnimalsByUserId(userId, level);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("data", animals);
-        response.put("message", "Animales recuperados correctamente");
+        try {
 
-        return new ResponseEntity<>(response, HttpStatus.OK);
+            if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
+                throw new IllegalArgumentException("Start date cannot be after end date");
+            }
+
+            Map<String, Object> response = new HashMap<>();
+
+            if (paginated || name != null || animalType != null || startDate != null || endDate != null) {
+
+                Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+                Pageable pageable = PageRequest.of(page, size, sortDirection, sortBy);
+
+                Map<String, Object> animalsData = animalService.getAllAnimalsByUserIdWithFilters(
+                        userId, name, animalType, startDate, endDate, level, pageable);
+
+                response.put("success", true);
+                response.put("data", animalsData);
+                response.put("message", "Animales recuperados correctamente");
+            } else {
+
+                List<AnimalDTO> animals = animalService.getAllAnimalsByUserId(userId, level);
+
+                response.put("success", true);
+                response.put("data", animals);
+                response.put("message", "Animales recuperados correctamente");
+            }
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
     }
 
     /**

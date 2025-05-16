@@ -1,8 +1,13 @@
 package com.example.demo.services;
 
+import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,12 +31,62 @@ public class AnimalService {
     }
 
     /**
-     * Get all animals for a specific user
+     * Get all animals for a specific user with basic filtering
      */
     public List<AnimalDTO> getAllAnimalsByUserId(Long userId, DetailLevel detailLevel) {
         return animalRepository.findByUserId(userId).stream()
                 .map(animal -> AnimalDTO.fromEntity(animal, detailLevel))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Get all animals for a specific user with advanced filtering, pagination and
+     * sorting
+     */
+    public Map<String, Object> getAllAnimalsByUserIdWithFilters(
+            Long userId,
+            String name,
+            String animalType,
+            LocalDate startDate,
+            LocalDate endDate,
+            DetailLevel detailLevel,
+            Pageable pageable) {
+
+        Page<Animal> animalPage;
+
+        if (name != null && animalType != null && startDate != null && endDate != null) {
+            animalPage = animalRepository.findByUserIdAndNameContainingIgnoreCaseAndAnimalTypeAndBirthDateBetween(
+                    userId, name, animalType, startDate, endDate, pageable);
+        } else if (name != null && animalType != null) {
+            animalPage = animalRepository.findByUserIdAndNameContainingIgnoreCaseAndAnimalType(
+                    userId, name, animalType, pageable);
+        } else if (name != null && startDate != null && endDate != null) {
+            animalPage = animalRepository.findByUserIdAndNameContainingIgnoreCaseAndBirthDateBetween(
+                    userId, name, startDate, endDate, pageable);
+        } else if (animalType != null && startDate != null && endDate != null) {
+            animalPage = animalRepository.findByUserIdAndAnimalTypeAndBirthDateBetween(
+                    userId, animalType, startDate, endDate, pageable);
+        } else if (name != null) {
+            animalPage = animalRepository.findByUserIdAndNameContainingIgnoreCase(userId, name, pageable);
+        } else if (animalType != null) {
+            animalPage = animalRepository.findByUserIdAndAnimalType(userId, animalType, pageable);
+        } else if (startDate != null && endDate != null) {
+            animalPage = animalRepository.findByUserIdAndBirthDateBetween(userId, startDate, endDate, pageable);
+        } else {
+            animalPage = animalRepository.findByUserId(userId, pageable);
+        }
+
+        List<AnimalDTO> animals = animalPage.getContent().stream()
+                .map(animal -> AnimalDTO.fromEntity(animal, detailLevel))
+                .collect(Collectors.toList());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("animals", animals);
+        response.put("currentPage", animalPage.getNumber());
+        response.put("totalItems", animalPage.getTotalElements());
+        response.put("totalPages", animalPage.getTotalPages());
+
+        return response;
     }
 
     /**
