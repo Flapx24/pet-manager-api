@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PatchMapping;
 
 import com.example.demo.dto.VaccineDTO;
 import com.example.demo.dto.VaccineRequestDTO;
@@ -173,6 +174,12 @@ public class VaccineController {
             response.put("message", e.getMessage());
 
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -207,6 +214,52 @@ public class VaccineController {
             response.put("message", e.getMessage());
 
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    /**
+     * Confirm the application of a vaccine
+     * This endpoint marks a vaccine as applied, setting the application date to now
+     * and removing the expiration date
+     * 
+     * @param animalId Animal ID
+     * @param vaccineId Vaccine ID
+     * @return Applied vaccine information
+     */
+    @PatchMapping("/{vaccineId}/apply")
+    public ResponseEntity<Map<String, Object>> confirmVaccineApplication(
+            @PathVariable Long animalId,
+            @PathVariable Long vaccineId) {
+
+        Long userId = SecurityUtils.getCurrentUserId();
+
+        try {
+            VaccineDTO appliedVaccine = vaccineService.confirmVaccineApplication(vaccineId, animalId, userId);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", appliedVaccine);
+            response.put("message", "Vaccine successfully applied");
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (ResourceNotFoundException e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        } catch (IllegalStateException e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
     }
 

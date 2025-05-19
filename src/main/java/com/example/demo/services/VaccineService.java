@@ -117,13 +117,16 @@ public class VaccineService {
      */
     @Transactional
     public VaccineDTO createVaccine(VaccineRequestDTO request, Long animalId, Long userId) {
+        request.validate();
+        
         // Get animal and verify ownership
         Animal animal = animalRepository.findByIdAndUserId(animalId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Animal", "id", animalId));
-          // Create and save new vaccine
+
+        // When registering, applicationDate should be null, and expirationDate is required
         Vaccine vaccine = new Vaccine(
             request.getName(),
-            request.getApplicationDate(),
+            null, // applicationDate is always null for new vaccines
             request.getExpirationDate(),
             request.getDescription()
         );
@@ -145,6 +148,9 @@ public class VaccineService {
      */
     @Transactional
     public VaccineDTO updateVaccine(VaccineRequestDTO request, Long vaccineId, Long animalId, Long userId) {
+        request.setUpdate(true);
+        request.validate();
+        
         // Verify animal ownership
         if (!animalRepository.existsByIdAndUserId(animalId, userId)) {
             throw new ResourceNotFoundException("Animal", "id", animalId);
@@ -156,9 +162,44 @@ public class VaccineService {
         
         // Update vaccine fields
         vaccine.setName(request.getName());
-        vaccine.setApplicationDate(request.getApplicationDate());
+        // Always set applicationDate to null for regular updates
+        // Application date can only be set via the dedicated endpoint
+        vaccine.setApplicationDate(null);
         vaccine.setExpirationDate(request.getExpirationDate());
         vaccine.setDescription(request.getDescription());
+        
+        Vaccine updatedVaccine = vaccineRepository.save(vaccine);
+        
+        return VaccineDTO.fromEntity(updatedVaccine);
+    }
+    /**
+     * Confirm vaccine application
+     * This is the only endpoint that can set applicationDate
+     * When a vaccine is applied, applicationDate is set to current date and expirationDate is cleared
+     * 
+     * @param vaccineId Vaccine ID to apply
+     * @param animalId Animal ID
+     * @param userId User ID (for ownership validation)
+     * @return Updated vaccine DTO with application date set and expiration date cleared
+     */
+    @Transactional
+    public VaccineDTO confirmVaccineApplication(Long vaccineId, Long animalId, Long userId) {
+        // Verify animal ownership
+        if (!animalRepository.existsByIdAndUserId(animalId, userId)) {
+            throw new ResourceNotFoundException("Animal", "id", animalId);
+        }
+        
+        // Find vaccine by ID and animal ID
+        Vaccine vaccine = vaccineRepository.findByIdAndAnimalId(vaccineId, animalId)
+                .orElseThrow(() -> new ResourceNotFoundException("Vaccine", "id", vaccineId));
+        
+        // Check if vaccine is already applied
+        if (vaccine.getApplicationDate() != null) {
+            throw new IllegalStateException("Vaccine is already applied on " + vaccine.getApplicationDate());
+        }
+        
+        // Apply the vaccine - this sets applicationDate to today and expirationDate to null
+        vaccine.applyVaccine();
         
         Vaccine updatedVaccine = vaccineRepository.save(vaccine);
         

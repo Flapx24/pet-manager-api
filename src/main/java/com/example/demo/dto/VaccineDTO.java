@@ -3,9 +3,7 @@ package com.example.demo.dto;
 import java.time.LocalDate;
 
 import com.example.demo.entities.Vaccine;
-import com.fasterxml.jackson.annotation.JsonInclude;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class VaccineDTO {
     private Long id;
     private String name;
