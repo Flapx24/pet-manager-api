@@ -227,4 +227,73 @@ public class VaccineService {
         // Delete vaccine
         vaccineRepository.delete(vaccine);
     }
+    
+    /**
+     * Get vaccines with future expiration dates (not yet expired)
+     * 
+     * @param animalId Animal ID
+     * @param userId User ID (for ownership validation)
+     * @param pageable Pagination information
+     * @return Map containing paginated list of non-expired vaccines and pagination metadata
+     */
+    public Map<String, Object> getNonExpiredVaccines(Long animalId, Long userId, Pageable pageable) {
+        // Verify that the animal exists and belongs to the user
+        if (!animalRepository.existsByIdAndUserId(animalId, userId)) {
+            throw new ResourceNotFoundException("Animal", "id", animalId);
+        }
+
+        // Get current date to find vaccines that have not yet expired
+        LocalDate currentDate = LocalDate.now();
+        
+        // Get paginated non-expired vaccines
+        Page<Vaccine> vaccinePage = vaccineRepository.findNonExpiredVaccinesByAnimalIdAndUserId(
+                animalId, userId, currentDate, pageable);
+
+        // Convert entities to DTOs
+        List<VaccineDTO> vaccines = vaccinePage.getContent().stream()
+                .map(VaccineDTO::fromEntity)
+                .collect(Collectors.toList());
+
+        // Create response with pagination metadata
+        Map<String, Object> response = new HashMap<>();
+        response.put("vaccines", vaccines);
+        response.put("currentPage", vaccinePage.getNumber());
+        response.put("totalItems", vaccinePage.getTotalElements());
+        response.put("totalPages", vaccinePage.getTotalPages());
+
+        return response;
+    }
+    
+    /**
+     * Get confirmed vaccines (vaccines with application date)
+     * 
+     * @param animalId Animal ID
+     * @param userId User ID (for ownership validation)
+     * @param pageable Pagination information
+     * @return Map containing paginated list of confirmed vaccines and pagination metadata
+     */
+    public Map<String, Object> getConfirmedVaccines(Long animalId, Long userId, Pageable pageable) {
+        // Verify that the animal exists and belongs to the user
+        if (!animalRepository.existsByIdAndUserId(animalId, userId)) {
+            throw new ResourceNotFoundException("Animal", "id", animalId);
+        }
+        
+        // Get paginated confirmed vaccines
+        Page<Vaccine> vaccinePage = vaccineRepository.findConfirmedVaccinesByAnimalIdAndUserId(
+                animalId, userId, pageable);
+
+        // Convert entities to DTOs
+        List<VaccineDTO> vaccines = vaccinePage.getContent().stream()
+                .map(VaccineDTO::fromEntity)
+                .collect(Collectors.toList());
+
+        // Create response with pagination metadata
+        Map<String, Object> response = new HashMap<>();
+        response.put("vaccines", vaccines);
+        response.put("currentPage", vaccinePage.getNumber());
+        response.put("totalItems", vaccinePage.getTotalElements());
+        response.put("totalPages", vaccinePage.getTotalPages());
+
+        return response;
+    }
 }

@@ -64,4 +64,21 @@ public interface VaccineRepository extends JpaRepository<Vaccine, Long> {
     
     // Find a vaccine by ID and animal ID
     Optional<Vaccine> findByIdAndAnimalId(Long id, Long animalId);
+    
+    // Find vaccines with future expiration dates (non-expired vaccines)
+    @Query("SELECT v FROM Vaccine v WHERE v.animal.id = :animalId AND v.animal.user.id = :userId " +
+           "AND v.expirationDate IS NOT NULL AND v.expirationDate >= :currentDate")
+    Page<Vaccine> findNonExpiredVaccinesByAnimalIdAndUserId(
+            @Param("animalId") Long animalId, 
+            @Param("userId") Long userId, 
+            @Param("currentDate") LocalDate currentDate,
+            Pageable pageable);
+            
+    // Find confirmed vaccines (vaccines with application date)
+    @Query("SELECT v FROM Vaccine v WHERE v.animal.id = :animalId AND v.animal.user.id = :userId " +
+           "AND v.applicationDate IS NOT NULL")
+    Page<Vaccine> findConfirmedVaccinesByAnimalIdAndUserId(
+            @Param("animalId") Long animalId, 
+            @Param("userId") Long userId,
+            Pageable pageable);
 }

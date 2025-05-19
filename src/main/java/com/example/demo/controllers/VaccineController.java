@@ -293,4 +293,92 @@ public class VaccineController {
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }
     }
+    
+    /**
+     * Get vaccines with future expiration dates (not yet expired)
+     * 
+     * @param animalId Animal ID
+     * @param page Page number (0-based)
+     * @param size Page size
+     * @param sortBy Field to sort by (default: expirationDate)
+     * @param direction Sort direction (ASC or DESC)
+     * @return Paginated list of non-expired vaccines
+     */
+    @GetMapping("/non-expired")
+    public ResponseEntity<Map<String, Object>> getNonExpiredVaccines(
+            @PathVariable Long animalId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "expirationDate") String sortBy,
+            @RequestParam(defaultValue = "ASC") String direction) {
+        
+        // Get the current authenticated user's ID
+        Long userId = SecurityUtils.getCurrentUserId();
+        
+        try {
+            // Create pageable object
+            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+            Pageable pageable = PageRequest.of(page, size, sortDirection, sortBy);
+            
+            // Get paginated non-expired vaccines
+            Map<String, Object> vaccinesData = vaccineService.getNonExpiredVaccines(animalId, userId, pageable);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", vaccinesData);
+            response.put("message", "Non-expired vaccines successfully retrieved");
+            
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (ResourceNotFoundException e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+    }
+    
+    /**
+     * Get confirmed vaccines (vaccines with application date)
+     * 
+     * @param animalId Animal ID
+     * @param page Page number (0-based)
+     * @param size Page size
+     * @param sortBy Field to sort by (default: applicationDate)
+     * @param direction Sort direction (ASC or DESC)
+     * @return Paginated list of confirmed vaccines
+     */
+    @GetMapping("/confirmed")
+    public ResponseEntity<Map<String, Object>> getConfirmedVaccines(
+            @PathVariable Long animalId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "applicationDate") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
+        
+        // Get the current authenticated user's ID
+        Long userId = SecurityUtils.getCurrentUserId();
+        
+        try {
+            // Create pageable object
+            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+            Pageable pageable = PageRequest.of(page, size, sortDirection, sortBy);
+            
+            // Get paginated confirmed vaccines
+            Map<String, Object> vaccinesData = vaccineService.getConfirmedVaccines(animalId, userId, pageable);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", vaccinesData);
+            response.put("message", "Confirmed vaccines successfully retrieved");
+            
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (ResourceNotFoundException e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+    }
 }
