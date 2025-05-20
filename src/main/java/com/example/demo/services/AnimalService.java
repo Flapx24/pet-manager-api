@@ -300,4 +300,35 @@ public class AnimalService {
         }
         animalRepository.deleteById(animalId);
     }
+    
+    /**
+     * Get all animals with pending vaccines for a specific user
+     * Pending vaccines are those that have an expiration date in the future but haven't been applied yet
+     * 
+     * @param userId User ID
+     * @param detailLevel Detail level for the animal DTOs
+     * @param pageable Pagination information
+     * @return Map containing paginated list of animals with pending vaccines and pagination metadata
+     */
+    public Map<String, Object> getAnimalsWithPendingVaccines(Long userId, DetailLevel detailLevel, Pageable pageable) {
+        // Get current date to check for non-expired vaccines
+        LocalDate currentDate = LocalDate.now();
+        
+        // Get paginated animals with pending vaccines
+        Page<Animal> animalPage = animalRepository.findAnimalsWithPendingVaccines(userId, currentDate, pageable);
+        
+        // Convert entities to DTOs
+        List<AnimalDTO> animals = animalPage.getContent().stream()
+                .map(animal -> AnimalDTO.fromEntity(animal, detailLevel))
+                .collect(Collectors.toList());
+        
+        // Create response with pagination metadata
+        Map<String, Object> response = new HashMap<>();
+        response.put("animals", animals);
+        response.put("currentPage", animalPage.getNumber());
+        response.put("totalItems", animalPage.getTotalElements());
+        response.put("totalPages", animalPage.getTotalPages());
+        
+        return response;
+    }
 }

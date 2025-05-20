@@ -186,7 +186,7 @@ public class AnimalController {
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
     }
-
+    
     /**
      * Delete an animal
      */
@@ -209,6 +209,51 @@ public class AnimalController {
             response.put("message", e.getMessage());
 
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+    }
+    
+    /**
+     * Get all animals with pending vaccines
+     * Pending vaccines are those that have an expiration date in the future but haven't been applied yet
+     * 
+     * @param detailLevel Detail level for animal information (BASIC or FULL)
+     * @param page Page number (0-based)
+     * @param size Page size
+     * @param sortBy Field to sort by (default: name)
+     * @param direction Sort direction (ASC or DESC)
+     * @return Paginated list of animals with pending vaccines
+     */
+    @GetMapping("/with-pending-vaccines")
+    public ResponseEntity<Map<String, Object>> getAnimalsWithPendingVaccines(
+            @RequestParam(defaultValue = "BASIC") String detailLevel,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "name") String sortBy,
+            @RequestParam(defaultValue = "ASC") String direction) {
+            
+        Long userId = SecurityUtils.getCurrentUserId();
+        DetailLevel level = DetailLevel.valueOf(detailLevel.toUpperCase());
+        
+        try {
+            // Create pageable object
+            Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+            Pageable pageable = PageRequest.of(page, size, sortDirection, sortBy);
+            
+            // Get paginated animals with pending vaccines
+            Map<String, Object> animalsData = animalService.getAnimalsWithPendingVaccines(userId, level, pageable);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", animalsData);
+            response.put("message", "Animales con vacunas pendientes recuperados correctamente");
+            
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

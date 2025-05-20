@@ -15,54 +15,64 @@ import com.example.demo.entities.Animal;
 
 @Repository
 public interface AnimalRepository extends JpaRepository<Animal, Long> {
-    List<Animal> findByUserId(Long userId);
+        List<Animal> findByUserId(Long userId);
 
-    Page<Animal> findByUserId(Long userId, Pageable pageable);
+        Page<Animal> findByUserId(Long userId, Pageable pageable);
 
-    @Query("SELECT a FROM Animal a WHERE a.user.id = :userId AND LOWER(a.name) LIKE LOWER(CONCAT('%', :name, '%'))")
-    Page<Animal> findByUserIdAndNameContainingIgnoreCase(@Param("userId") Long userId, @Param("name") String name,
-            Pageable pageable);
+        @Query("SELECT a FROM Animal a WHERE a.user.id = :userId AND LOWER(a.name) LIKE LOWER(CONCAT('%', :name, '%'))")
+        Page<Animal> findByUserIdAndNameContainingIgnoreCase(@Param("userId") Long userId, @Param("name") String name,
+                        Pageable pageable);
 
-    @Query("SELECT a FROM Animal a WHERE a.user.id = :userId AND a.class = :animalType")
-    Page<Animal> findByUserIdAndAnimalType(@Param("userId") Long userId, @Param("animalType") String animalType,
-            Pageable pageable);
+        @Query("SELECT a FROM Animal a WHERE a.user.id = :userId AND a.class = :animalType")
+        Page<Animal> findByUserIdAndAnimalType(@Param("userId") Long userId, @Param("animalType") String animalType,
+                        Pageable pageable);
 
-    Page<Animal> findByUserIdAndBirthDateBetween(Long userId, LocalDate startDate, LocalDate endDate,
-            Pageable pageable);
+        Page<Animal> findByUserIdAndBirthDateBetween(Long userId, LocalDate startDate, LocalDate endDate,
+                        Pageable pageable);
 
-    @Query("SELECT a FROM Animal a WHERE a.user.id = :userId AND LOWER(a.name) LIKE LOWER(CONCAT('%', :name, '%')) AND a.class = :animalType")
-    Page<Animal> findByUserIdAndNameContainingIgnoreCaseAndAnimalType(
-            @Param("userId") Long userId,
-            @Param("name") String name,
-            @Param("animalType") String animalType,
-            Pageable pageable);
+        @Query("SELECT a FROM Animal a WHERE a.user.id = :userId AND LOWER(a.name) LIKE LOWER(CONCAT('%', :name, '%')) AND a.class = :animalType")
+        Page<Animal> findByUserIdAndNameContainingIgnoreCaseAndAnimalType(
+                        @Param("userId") Long userId,
+                        @Param("name") String name,
+                        @Param("animalType") String animalType,
+                        Pageable pageable);
 
-    @Query("SELECT a FROM Animal a WHERE a.user.id = :userId AND LOWER(a.name) LIKE LOWER(CONCAT('%', :name, '%')) AND a.birthDate BETWEEN :startDate AND :endDate")
-    Page<Animal> findByUserIdAndNameContainingIgnoreCaseAndBirthDateBetween(
-            @Param("userId") Long userId,
-            @Param("name") String name,
-            @Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate,
-            Pageable pageable);
+        @Query("SELECT a FROM Animal a WHERE a.user.id = :userId AND LOWER(a.name) LIKE LOWER(CONCAT('%', :name, '%')) AND a.birthDate BETWEEN :startDate AND :endDate")
+        Page<Animal> findByUserIdAndNameContainingIgnoreCaseAndBirthDateBetween(
+                        @Param("userId") Long userId,
+                        @Param("name") String name,
+                        @Param("startDate") LocalDate startDate,
+                        @Param("endDate") LocalDate endDate,
+                        Pageable pageable);
 
-    @Query("SELECT a FROM Animal a WHERE a.user.id = :userId AND a.class = :animalType AND a.birthDate BETWEEN :startDate AND :endDate")
-    Page<Animal> findByUserIdAndAnimalTypeAndBirthDateBetween(
-            @Param("userId") Long userId,
-            @Param("animalType") String animalType,
-            @Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate,
-            Pageable pageable);
+        @Query("SELECT a FROM Animal a WHERE a.user.id = :userId AND a.class = :animalType AND a.birthDate BETWEEN :startDate AND :endDate")
+        Page<Animal> findByUserIdAndAnimalTypeAndBirthDateBetween(
+                        @Param("userId") Long userId,
+                        @Param("animalType") String animalType,
+                        @Param("startDate") LocalDate startDate,
+                        @Param("endDate") LocalDate endDate,
+                        Pageable pageable);
 
-    @Query("SELECT a FROM Animal a WHERE a.user.id = :userId AND LOWER(a.name) LIKE LOWER(CONCAT('%', :name, '%')) AND a.class = :animalType AND a.birthDate BETWEEN :startDate AND :endDate")
-    Page<Animal> findByUserIdAndNameContainingIgnoreCaseAndAnimalTypeAndBirthDateBetween(
-            @Param("userId") Long userId,
-            @Param("name") String name,
-            @Param("animalType") String animalType,
-            @Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate,
-            Pageable pageable);
+        @Query("SELECT a FROM Animal a WHERE a.user.id = :userId AND LOWER(a.name) LIKE LOWER(CONCAT('%', :name, '%')) AND a.class = :animalType AND a.birthDate BETWEEN :startDate AND :endDate")
+        Page<Animal> findByUserIdAndNameContainingIgnoreCaseAndAnimalTypeAndBirthDateBetween(
+                        @Param("userId") Long userId,
+                        @Param("name") String name,
+                        @Param("animalType") String animalType,
+                        @Param("startDate") LocalDate startDate,
+                        @Param("endDate") LocalDate endDate,
+                        Pageable pageable);
 
-    Optional<Animal> findByIdAndUserId(Long id, Long userId);
+        @Query("SELECT DISTINCT a FROM Animal a JOIN a.vaccines v " +
+                        "WHERE a.user.id = :userId " +
+                        "AND v.applicationDate IS NULL " +
+                        "AND v.expirationDate IS NOT NULL " +
+                        "AND v.expirationDate >= :currentDate")
+        Page<Animal> findAnimalsWithPendingVaccines(
+                        @Param("userId") Long userId,
+                        @Param("currentDate") LocalDate currentDate,
+                        Pageable pageable);
 
-    boolean existsByIdAndUserId(Long id, Long userId);
+        Optional<Animal> findByIdAndUserId(Long id, Long userId);
+
+        boolean existsByIdAndUserId(Long id, Long userId);
 }

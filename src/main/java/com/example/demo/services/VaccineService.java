@@ -11,6 +11,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.demo.dto.AnimalDTO;
+import com.example.demo.dto.DetailLevel;
 import com.example.demo.dto.VaccineDTO;
 import com.example.demo.dto.VaccineRequestDTO;
 import com.example.demo.entities.Animal;
@@ -285,15 +287,43 @@ public class VaccineService {
         // Convert entities to DTOs
         List<VaccineDTO> vaccines = vaccinePage.getContent().stream()
                 .map(VaccineDTO::fromEntity)
-                .collect(Collectors.toList());
-
-        // Create response with pagination metadata
+                .collect(Collectors.toList());        // Create response with pagination metadata
         Map<String, Object> response = new HashMap<>();
         response.put("vaccines", vaccines);
         response.put("currentPage", vaccinePage.getNumber());
         response.put("totalItems", vaccinePage.getTotalElements());
         response.put("totalPages", vaccinePage.getTotalPages());
 
+        return response;
+    }
+    
+    /**
+     * Get all animals with pending vaccines for a user
+     * 
+     * @param userId User ID
+     * @param pageable Pagination information
+     * @return Map containing paginated list of animals with pending vaccines and pagination metadata
+     */
+    public Map<String, Object> getAnimalsWithPendingVaccines(Long userId, Pageable pageable) {
+        // Get current date
+        LocalDate currentDate = LocalDate.now();
+        
+        // Get paginated animals with pending vaccines
+        Page<Animal> animalPage = vaccineRepository.findAnimalsWithPendingVaccines(
+                userId, currentDate, pageable);
+        
+        // Convert entities to DTOs
+        List<AnimalDTO> animals = animalPage.getContent().stream()
+                .map(animal -> AnimalDTO.fromEntity(animal, DetailLevel.BASIC))
+                .collect(Collectors.toList());
+        
+        // Create response with pagination metadata
+        Map<String, Object> response = new HashMap<>();
+        response.put("animals", animals);
+        response.put("currentPage", animalPage.getNumber());
+        response.put("totalItems", animalPage.getTotalElements());
+        response.put("totalPages", animalPage.getTotalPages());
+        
         return response;
     }
 }
